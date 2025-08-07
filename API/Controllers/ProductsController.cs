@@ -1,22 +1,20 @@
 using Core.Entities;
 using Core.Interfaces;
-using Infrastructure.Data;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class ProductsController(IProductRepository productRepository) : ControllerBase
+public class ProductsController(IGenericRepository<Product> repository) : ControllerBase
 {
 
     [HttpPost]
     public async Task<ActionResult<Product>> CreateProduct(Product product)
     {
-        productRepository.AddProduct(product);
+        repository.Add(product);
 
-        if (await productRepository.SaveChangesAsync())
+        if (await repository.SaveAllAsync())
         {
             return CreatedAtAction("GetProduct", new { id = product.Id }, product);
         }
@@ -27,13 +25,13 @@ public class ProductsController(IProductRepository productRepository) : Controll
     [HttpGet]
     public async Task<ActionResult<IEnumerable<Product>>> GetProducts(string? brand, string? type, string? sort)
     {
-        return Ok(await productRepository.GetProductsAsync(brand, type, sort));
+        return Ok(await repository.ListAllAsync());
     }
 
     [HttpGet("{id:int}")]
     public async Task<ActionResult<Product?>> GetProduct(int id)
     {
-        var product = await productRepository.GetProductByIdAsync(id);
+        var product = await repository.GetByIdAsync(id);
 
         if (product == null)
         {
@@ -43,17 +41,17 @@ public class ProductsController(IProductRepository productRepository) : Controll
         return product;
     }
 
-    [HttpGet("brands")]
-    public async Task<ActionResult<IEnumerable<string>>> GetBrands()
-    {
-        return Ok(await productRepository.GetBrandsAsync());
-    }
+    // [HttpGet("brands")]
+    // public async Task<ActionResult<IEnumerable<string>>> GetBrands()
+    // {
+    //     return Ok(await productRepository.GetBrandsAsync());
+    // }
 
-    [HttpGet("types")]
-    public async Task<ActionResult<IEnumerable<string>>> GetTypes()
-    {
-        return Ok(await productRepository.GetTypesAsync());
-    }
+    // [HttpGet("types")]
+    // public async Task<ActionResult<IEnumerable<string>>> GetTypes()
+    // {
+    //     return Ok(await productRepository.GetTypesAsync());
+    // }
 
     [HttpPut("{id:int}")]
     public async Task<ActionResult> UpdateProduct(int id, Product product)
@@ -63,9 +61,9 @@ public class ProductsController(IProductRepository productRepository) : Controll
             return BadRequest("Cannot update this product");
         }
 
-        productRepository.UpdateProduct(product);
+        repository.Update(product);
 
-        if (await productRepository.SaveChangesAsync())
+        if (await repository.SaveAllAsync())
         {
             return NoContent();
         }
@@ -76,16 +74,16 @@ public class ProductsController(IProductRepository productRepository) : Controll
     [HttpDelete("{id:int}")]
     public async Task<ActionResult> DeleteProduct(int id)
     {
-        var product = await productRepository.GetProductByIdAsync(id);
+        var product = await repository.GetByIdAsync(id);
 
         if (product == null)
         {
             return NotFound("Product not found");
         }
 
-        productRepository.DeleteProduct(product);
+        repository.Delete(product);
 
-        if (await productRepository.SaveChangesAsync())
+        if (await repository.SaveAllAsync())
         {
             return NoContent();
         }
@@ -95,6 +93,6 @@ public class ProductsController(IProductRepository productRepository) : Controll
 
     private bool ProductExists(int id)
     {
-        return productRepository.ProductExists(id);
+        return repository.Exists(id);
     }
 }
