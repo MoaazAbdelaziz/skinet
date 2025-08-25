@@ -46,17 +46,21 @@ public class ProductsController(IGenericRepository<Product> repository) : Contro
         return product;
     }
 
-    // [HttpGet("brands")]
-    // public async Task<ActionResult<IEnumerable<string>>> GetBrands()
-    // {
-    //     return Ok(await productRepository.GetBrandsAsync());
-    // }
+    [HttpGet("brands")]
+    public async Task<ActionResult<IEnumerable<string>>> GetBrands()
+    {
+        var spec = new BrandListSpecification();
 
-    // [HttpGet("types")]
-    // public async Task<ActionResult<IEnumerable<string>>> GetTypes()
-    // {
-    //     return Ok(await productRepository.GetTypesAsync());
-    // }
+        return Ok(await repository.ListAsync(spec));
+    }
+
+    [HttpGet("types")]
+    public async Task<ActionResult<IEnumerable<string>>> GetTypes()
+    {
+        var spec = new TypeListSpecification();
+
+        return Ok(await repository.ListAsync(spec));
+    }
 
     [HttpPut("{id:int}")]
     public async Task<ActionResult> UpdateProduct(int id, Product product)
