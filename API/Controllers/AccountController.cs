@@ -51,28 +51,29 @@ namespace API.Controllers
 
             var user = await signInManager.UserManager.GetUserByEmailWithAddress(User);
 
-            if (user == null) return Unauthorized();
-
             return Ok(new
             {
                 user.FirstName,
                 user.LastName,
                 user.Email,
-                Address = user.Address.ToDto()
+                Address = user.Address?.ToDto()
             });
         }
 
-        [HttpGet]
+        [HttpGet("auth-status")]
         public ActionResult GetAuthState()
         {
-            return Ok(new { IsAuthenticated = User.Identity?.IsAuthenticated ?? false });
+            return Ok(new
+            {
+                IsAuthenticated = User.Identity?.IsAuthenticated ?? false
+            });
         }
 
         [Authorize]
         [HttpPost("address")]
         public async Task<ActionResult<Address>> CreateOrUpdateAddress(AddressDto addressDto)
         {
-            var user = await signInManager.UserManager.GetUserByEmail(User);
+            var user = await signInManager.UserManager.GetUserByEmailWithAddress(User);
 
             if (user.Address == null)
             {
