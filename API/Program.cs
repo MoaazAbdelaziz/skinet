@@ -37,6 +37,8 @@ builder.Services.AddScoped<IProductRepository, ProductRepository>();
 
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 
+builder.Services.AddScoped<IPaymentService, PaymentService>();
+
 builder.Services.AddSingleton<ICartService, CartService>();
 
 var app = builder.Build();
