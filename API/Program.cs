@@ -1,4 +1,5 @@
 using API.Middleware;
+using API.SignalR;
 using Core.Entities;
 using Core.Interfaces;
 using Infrastructure.Data;
@@ -15,6 +16,8 @@ builder.Services.AddControllers();
 builder.Services.AddCors();
 
 builder.Services.AddAuthorization();
+
+builder.Services.AddSignalR();
 
 builder.Services.AddIdentityApiEndpoints<AppUser>()
     .AddEntityFrameworkStores<StoreContext>();
@@ -55,9 +58,15 @@ app.UseCors(x =>
     .WithOrigins("http://localhost:4200", "https://localhost:4200")
     );
 
+app.UseAuthentication();
+
+app.UseAuthorization();
+
 app.MapControllers();
 
 app.MapGroup("api").MapIdentityApi<AppUser>();
+
+app.MapHub<NotificationHub>("/hub/notifications");
 
 using var scope = app.Services.CreateScope();
 var services = scope.ServiceProvider;
