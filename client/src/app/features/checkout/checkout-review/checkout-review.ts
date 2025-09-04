@@ -11,7 +11,7 @@ import { PaymentCardPipe } from "../../../shared/pipes/payment-card-pipe";
     CurrencyPipe,
     AddressPipe,
     PaymentCardPipe
-],
+  ],
   templateUrl: './checkout-review.html',
   styleUrl: './checkout-review.scss'
 })
