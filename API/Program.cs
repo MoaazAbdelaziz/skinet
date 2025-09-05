@@ -48,6 +48,8 @@ builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 builder.Services.AddSingleton<ICartService, CartService>();
 
+builder.Services.AddSingleton<IResponseCacheService, ResponseCacheService>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
