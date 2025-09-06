@@ -1,4 +1,3 @@
-
 export interface OrderType {
     id: number
     orderDate: string
@@ -9,6 +8,7 @@ export interface OrderType {
     paymentSummery: PaymentSummery
     orderItems: OrderItem[]
     subtotal: number
+    discount?: number
     status: string
     paymentIntentId: string
     total: number;
@@ -44,4 +44,5 @@ export interface OrderToCreate {
     deliveryMethodId: number;
     shippingAddress: ShippingAddress;
     paymentSummery: PaymentSummery;
+    discount?: number;
 }

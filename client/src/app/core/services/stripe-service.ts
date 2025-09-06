@@ -32,7 +32,7 @@ export class StripeService {
     if (!this.elements) {
       const stripe = await this.getStripeInstance();
       if (stripe) {
-        const cart = await firstValueFrom(this.createPaymentIntent());
+        const cart = await firstValueFrom(this.createOrUpdatePaymentIntent());
         this.elements = stripe.elements({ clientSecret: cart.clientSecret, appearance: { labels: 'floating' } });
       } else {
         throw new Error('Stripe has not been loaded');
@@ -121,15 +121,19 @@ export class StripeService {
     }
   }
 
-  createPaymentIntent() {
+  createOrUpdatePaymentIntent() {
     const cart = this.cartService.cart();
+    const hasClientSecret = !!cart?.clientSecret;
     if (!cart) throw new Error('Problem with cart');
     return this.http.post<CartType>(this.baseUrl + 'payments/' + cart.id, {}).pipe(
       map(async cart => {
-        await firstValueFrom(this.cartService.getCart(cart.id));
-        return cart
+        if (!hasClientSecret) {
+          await firstValueFrom(this.cartService.setCart(cart));
+          return cart;
+        }
+        return cart;
       })
-    );
+    )
   }
 
   disopseElements() {
