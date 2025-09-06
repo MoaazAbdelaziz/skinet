@@ -17,11 +17,11 @@ namespace API.Controllers
 
         [Authorize]
         [HttpPost("{cartId}")]
-        public async Task<ActionResult<ShoppingCart>> CreateOrUpdatePaymentIntent(string cartId)
+        public async Task<ActionResult> CreateOrUpdatePaymentIntent(string cartId)
         {
             var cart = await paymentService.CreateOrUpdatePaymentIntent(cartId);
 
-            if (cart == null) return BadRequest("Problem with your cart");
+            if (cart == null) return BadRequest("Problem with your cart on the API");
 
             return Ok(cart);
         }
@@ -33,7 +33,7 @@ namespace API.Controllers
         }
 
         [HttpPost("webhook")]
-        public async Task<ActionResult> StripeWebhook()
+        public async Task<IActionResult> StripeWebhook()
         {
             var json = await new StreamReader(Request.Body).ReadToEndAsync();
 
@@ -41,7 +41,10 @@ namespace API.Controllers
             {
                 var stripeEvent = ConstructStripeEvent(json);
 
-                if (stripeEvent.Data.Object is not PaymentIntent intent) return BadRequest("Invalid Event data");
+                if (stripeEvent.Data.Object is not PaymentIntent intent)
+                {
+                    return BadRequest("Invalid event data.");
+                }
 
                 await HandlePaymentIntentSucceeded(intent);
 
@@ -54,8 +57,8 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "An unexpected error occured");
-                return StatusCode(StatusCodes.Status500InternalServerError, "An unexpected error occured");
+                logger.LogError(ex, "An unexpected error occurred");
+                return StatusCode(StatusCodes.Status500InternalServerError, "An unexpected error occurred");
             }
         }
 
@@ -67,8 +70,8 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Faild to construct Stripe event");
-                throw new StripeException("Invalid Stripe signature");
+                logger.LogError(ex, "Failed to construct Stripe event");
+                throw new StripeException("Invalid signature");
             }
         }
 
@@ -78,9 +81,13 @@ namespace API.Controllers
             {
                 var spec = new OrderSpecification(intent.Id, true);
 
-                var order = await unit.Repository<Order>().GetEntityWithSpec(spec) ?? throw new Exception("Order not found");
+                var order = await unit.Repository<Order>().GetEntityWithSpec(spec)
+                            ?? throw new Exception("Order not found");
 
-                if ((long)order.GetTotal() * 100 != intent.Amount)
+                var orderTotalInCents = (long)Math.Round(order.GetTotal() * 100,
+                MidpointRounding.AwayFromZero);
+
+                if (orderTotalInCents != intent.Amount)
                 {
                     order.Status = OrderStatus.PaymentMismatch;
                 }
@@ -95,7 +102,8 @@ namespace API.Controllers
 
                 if (!string.IsNullOrEmpty(connectionId))
                 {
-                    await hubContext.Clients.Client(connectionId).SendAsync("OrderCompleteNotification", order.ToDto());
+                    await hubContext.Clients.Client(connectionId).SendAsync("OrderCompleteNotification",
+                        order.ToDto());
                 }
             }
         }

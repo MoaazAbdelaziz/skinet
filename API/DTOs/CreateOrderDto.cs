@@ -16,4 +16,5 @@ public class CreateOrderDto
 
     [Required]
     public PaymentSummery PaymentSummery { get; set; } = null!;
+    public decimal Discount { get; set; }
 }
